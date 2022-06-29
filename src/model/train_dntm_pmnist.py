@@ -16,7 +16,7 @@ from torchvision.utils import make_grid
 from src.models.pytorchtools import EarlyStopping
 
 
-@hydra.main(config_path="../../conf/local", config_name="mnist_local")
+@hydra.main(config_path="../../conf/local", config_name="train_pmnist")
 def click_wrapper(cfg):
     train_and_test_dntm_smnist(cfg)
 
