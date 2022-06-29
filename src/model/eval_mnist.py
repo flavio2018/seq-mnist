@@ -11,7 +11,7 @@ from src.models.train_dntm_utils import build_model
 from src.utils import configure_reproducibility
 
 
-@hydra.main(config_path="../../conf", config_name="test_model_mnist")
+@hydra.main(config_path="../../conf/local", config_name="test_model_mnist")
 def test_mnist(cfg):
     device = torch.device("cuda", 0)
     rng = configure_reproducibility(cfg.run.seed)

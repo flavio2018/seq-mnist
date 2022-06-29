@@ -6,7 +6,7 @@ from src.utils import configure_reproducibility
 from src.models.train_dntm_utils import get_digit_string_repr
 
 
-@hydra.main("../../conf", "test_data_mnist")
+@hydra.main("../../conf/local", "test_data_mnist")
 def main(cfg):
 	rng = configure_reproducibility(cfg.run.seed)
 	cfg_dict = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
