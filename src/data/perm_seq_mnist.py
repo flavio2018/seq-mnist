@@ -8,7 +8,7 @@ from torchvision.datasets import MNIST
 from torchvision.transforms import Lambda
 import hydra
 import os
-from utils import seed_worker, configure_reproducibility
+from utils.run_utils import seed_worker, configure_reproducibility
 
 
 def get_dataset(permute, seed):
