@@ -6,14 +6,15 @@ import hydra
 import omegaconf
 import wandb
 
-from src.data.perm_seq_mnist import get_dataloaders
-from src.models.train_dntm_utils import build_model, get_optimizer
-from src.utils import configure_reproducibility
-from src.wandb_utils import log_weights_gradient, log_preds_and_targets
+from data.perm_seq_mnist import get_dataloaders
+from model.builders import build_model
+from utils.run_utils import configure_reproducibility
+from utils.train_utils import get_optimizer
+from utils.wandb_utils import log_weights_gradient, log_preds_and_targets
+from utils.pytorchtools import EarlyStopping
 
 from torchmetrics.classification import Accuracy
 from torchvision.utils import make_grid
-from src.models.pytorchtools import EarlyStopping
 
 
 @hydra.main(config_path="../../conf/local", config_name="train_pmnist")
