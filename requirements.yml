@@ -1,0 +1,21 @@
+name: seq-mnist
+channels:
+        - conda-forge
+        - defaults
+        - pytorch
+dependencies:
+        - cudatoolkit=11.3
+        - hydra-core
+        - ipython
+        - ipykernel
+        - ipywidgets
+        - matplotlib
+        - notebook
+        - numpy
+        - pandas
+        - pytorch::pytorch
+        - pytorch::torchvision
+        - seaborn
+        - torchmetrics
+        - toolz
+        - wandb
