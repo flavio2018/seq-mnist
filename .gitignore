@@ -2,3 +2,4 @@
 /hydra/
 /models/checkpoints/
 /slurm/
+/.env/
