@@ -17,7 +17,7 @@ from torchmetrics.classification import Accuracy
 from torchvision.utils import make_grid
 
 
-@hydra.main(config_path="../../conf/local", config_name="train_pmnist")
+@hydra.main(config_path="../../conf/local", config_name="train_smnist")
 def click_wrapper(cfg):
     train_and_test_dntm_smnist(cfg)
 
