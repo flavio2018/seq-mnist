@@ -6,9 +6,9 @@ import torch
 from torch.utils.data import DataLoader
 from torchmetrics.classification import Accuracy
 
-from src.data.perm_seq_mnist import get_dataloaders
-from src.models.train_dntm_utils import build_model
-from src.utils import configure_reproducibility
+from data.perm_seq_mnist import get_dataloaders
+from model.builders import build_model
+from utils.run_utils import configure_reproducibility
 
 
 @hydra.main(config_path="../../conf/local", config_name="test_model_mnist")
