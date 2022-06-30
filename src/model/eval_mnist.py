@@ -20,7 +20,7 @@ def test_mnist(cfg):
     _, valid_dataloader = get_dataloaders(cfg, rng)
     model = build_model(cfg.model, device)
     memory_reading_stats = MemoryReadingsStats()
-    memory_reading_stats.init_random_matrix()
+    memory_reading_stats.init_random_matrix(model.memory.overall_memory_size)
 
     logging.info("Starting testing phase")
     valid_accuracy = test_step(device, model, valid_dataloader, memory_reading_stats)
