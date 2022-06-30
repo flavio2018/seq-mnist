@@ -1,0 +1,3 @@
+defaults:
+        - model: dntm_mnist
+        - _self_

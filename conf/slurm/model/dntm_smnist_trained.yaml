@@ -1,0 +1,5 @@
+defaults:
+        - model: dntm_mnist
+        - _self_
+
+ckpt: "${run.project_path}/models/checkpoints/dntm_mnist_trained.pth"
