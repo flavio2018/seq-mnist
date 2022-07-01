@@ -37,6 +37,8 @@ def train_and_test_dntm_smnist(cfg):
 
     train_dataloader, valid_dataloader = get_dataloaders(cfg, rng)
     model = build_model(cfg.model, device)
+    memory_reading_stats = MemoryReadingsStats(path=os.getcwd())
+    memory_reading_stats.init_random_matrix(model.memory.overall_memory_size)
 
     loss_fn = torch.nn.NLLLoss()
     opt = get_optimizer(model, cfg)
@@ -52,7 +54,9 @@ def train_and_test_dntm_smnist(cfg):
         logging.info(f"Epoch {epoch}")
 
         train_loss, train_accuracy = training_step(device, model, loss_fn, opt, train_dataloader, epoch, cfg)
-        valid_loss, valid_accuracy = valid_step(device, model, loss_fn, valid_dataloader)
+        valid_loss, valid_accuracy = valid_step(device, model, loss_fn, valid_dataloader, epoch, memory_reading_stats)
+        memory_readings_stats.load_memory_readings(epoch)
+        memory_reading_stats.compute_stats()
 
         wandb.log({'loss_training_set': train_loss,
                    'loss_validation_set': valid_loss})
@@ -61,13 +65,20 @@ def train_and_test_dntm_smnist(cfg):
                    'acc_validation_set': valid_accuracy})
         log_weights_gradient(model)
 
+        wandb.log({'memory_reading_variance': memory_reading_stats.readings_variance,
+                   'memory_reading_kl_div': memory_reading_stats.kl_divergence})
+        memory_reading_stats.plot_random_projections()
+        wandb.log({f"memory_readings_random_projections": wandb.Image(
+            memory_reading_stats.path+"memory_readings_projections_epoch{0:03}.png".format(epoch))})
+        memory_readings_stats.reset()
+
         early_stopping(valid_loss, model)
         if early_stopping.early_stop:
             logging.info("Early stopping")
             break
 
 
-def valid_step(device, model, loss_fn, valid_data_loader):
+def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_stats):
     valid_accuracy = Accuracy().to(device)
     valid_epoch_loss = 0
     model.eval()
@@ -78,6 +89,7 @@ def valid_step(device, model, loss_fn, valid_data_loader):
 
         _, outputs = model(mnist_images)
         output = outputs[-1, :, :]
+        memory_reading_stats.update_memory_readings(model.memory_reading, epoch=epoch)
         
         loss_value = loss_fn(output.T, targets)
         valid_epoch_loss += loss_value.item() * mnist_images.size(0)
