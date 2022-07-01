@@ -1,4 +1,5 @@
 import hydra
+import omegaconf
 import logging
 import os
 import wandb
@@ -17,7 +18,10 @@ from model.dntm.MemoryReadingsStats import MemoryReadingsStats
 def test_mnist(cfg):
     device = torch.device("cuda", 0)
     rng = configure_reproducibility(cfg.run.seed)
-
+    cfg_dict = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
+    wandb.init(project="dntm_mnist", entity="flapetr", mode=cfg.run.wandb_mode)
+    wandb.run.name = cfg.run.codename
+    
     _, valid_dataloader = get_dataloaders(cfg, rng)
     model = build_model(cfg.model, device)
     memory_reading_stats = MemoryReadingsStats(path=os.getcwd())
@@ -30,6 +34,8 @@ def test_mnist(cfg):
     print(memory_reading_stats)
     logging.info(f"Accuracy on validation set: {valid_accuracy}")
     logging.info(memory_reading_stats.get_stats())
+    memory_reading_stats.plot_random_projections()
+    wandb.log({f"memory_readings_random_projections": wandb.Image(memory_reading_stats.path+'memory_readings_projections_1.png')})
 
 
 def test_step(device, model, test_data_loader, memory_reading_stats):
