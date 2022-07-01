@@ -8,6 +8,7 @@ import wandb
 
 from data.perm_seq_mnist import get_dataloaders
 from model.builders import build_model
+from model.dntm.MemoryReadingsStats import MemoryReadingsStats
 from utils.run_utils import configure_reproducibility
 from utils.train_utils import get_optimizer
 from utils.wandb_utils import log_weights_gradient, log_preds_and_targets
