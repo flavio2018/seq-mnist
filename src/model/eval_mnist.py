@@ -28,7 +28,7 @@ def test_mnist(cfg):
 
     logging.info("Starting testing phase")
     valid_accuracy = test_step(device, model, valid_dataloader, memory_reading_stats)
-    memory_reading_stats.load_memory_readings(epoch=1)
+    memory_reading_stats.load_memory_readings(epoch=0)
     memory_reading_stats.init_random_matrix(model.memory.overall_memory_size)
     memory_reading_stats.compute_stats()
     print(f"Accuracy on validation set: {valid_accuracy}")
