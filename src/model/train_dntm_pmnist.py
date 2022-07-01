@@ -56,7 +56,7 @@ def train_and_test_dntm_smnist(cfg):
 
         train_loss, train_accuracy = training_step(device, model, loss_fn, opt, train_dataloader, epoch, cfg)
         valid_loss, valid_accuracy = valid_step(device, model, loss_fn, valid_dataloader, epoch, memory_reading_stats)
-        memory_readings_stats.load_memory_readings(epoch)
+        memory_reading_stats.load_memory_readings(epoch)
         memory_reading_stats.compute_stats()
 
         wandb.log({'loss_training_set': train_loss,
@@ -71,7 +71,7 @@ def train_and_test_dntm_smnist(cfg):
         memory_reading_stats.plot_random_projections()
         wandb.log({f"memory_readings_random_projections": wandb.Image(
             memory_reading_stats.path+"memory_readings_projections_epoch{0:03}.png".format(epoch))})
-        memory_readings_stats.reset()
+        memory_reading_stats.reset()
 
         early_stopping(valid_loss, model)
         if early_stopping.early_stop:
