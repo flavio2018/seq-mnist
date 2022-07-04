@@ -72,7 +72,7 @@ def get_dataloaders(cfg, rng):
     train, _ = get_dataset(cfg.data.permute, cfg.run.seed)
     train.data, train.targets = train.data[:cfg.data.num_train], train.targets[:cfg.data.num_train]
 
-    train_idx, valid_idx = get_train_valid_indices(train)
+    train_idx, valid_idx = get_train_valid_indices(train, cfg)
 
     # define samplers for obtaining training and validation batches
     train_sampler = SubsetRandomSampler(train_idx)
@@ -97,9 +97,9 @@ def get_dataloaders(cfg, rng):
     return train_data_loader, valid_data_loader
 
 
-def get_train_valid_indices(train):
+def get_train_valid_indices(train, cfg):
     # obtain training indices that will be used for validation
-    valid_size = 0.2
+    valid_size = cfg.train.perc_valid
     num_train = len(train)
     indices = list(range(num_train))
     np.random.shuffle(indices)
