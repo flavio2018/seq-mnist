@@ -37,7 +37,7 @@ def train_and_test_dntm_smnist(cfg):
             logging.warning(f"{subconfig_name} is not being logged.")
 
     train_dataloader, valid_dataloader = get_dataloaders(cfg, rng)
-    model = build_model(cfg.model, device)
+    model = build_model(cfg, device)
     memory_reading_stats = MemoryReadingsStats(path=os.getcwd())
     memory_reading_stats.init_random_matrix(model.memory.overall_memory_size)
 
