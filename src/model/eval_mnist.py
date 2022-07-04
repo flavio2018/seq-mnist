@@ -16,7 +16,7 @@ from model.dntm.MemoryReadingsStats import MemoryReadingsStats
 
 @hydra.main(config_path="../../conf/local", config_name="test_model_mnist")
 def test_mnist(cfg):
-    device = torch.device("cuda", 0)
+    device = torch.device(cfg.run.device, 0)
     rng = configure_reproducibility(cfg.run.seed)
     cfg_dict = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
     wandb.init(project="dntm_mnist", entity="flapetr", mode=cfg.run.wandb_mode)

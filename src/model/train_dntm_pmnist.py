@@ -24,7 +24,7 @@ def click_wrapper(cfg):
 
 
 def train_and_test_dntm_smnist(cfg):
-    device = torch.device("cuda", 0)
+    device = torch.device(cfg.run.device, 0)
     rng = configure_reproducibility(cfg.run.seed)
 
     cfg_dict = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)

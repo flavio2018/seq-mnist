@@ -1,3 +1,4 @@
+device: cpu
 loglevel: INFO
 project_path: "/media/shift97/My Passport/Flavio/repos/seq-mnist"
 codename: default_local
