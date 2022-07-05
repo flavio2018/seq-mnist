@@ -1,20 +1,4 @@
-[submodule "models/dntm"]
-	path = models/dntm
-	url = git@github.com:flavio2018/dntm.git
-	branch = main
-[submodule "utils"]
-	path = utils
-	url = git@github.com:flavio2018/utils.git
-	branch = main
-[submodule "src/models/dntm"]
-	path = src/models/dntm
-	url = git@github.com:flavio2018/dntm.git
-	branch = main
 [submodule "src/utils"]
 	path = src/utils
 	url = git@github.com:flavio2018/utils.git
-	branch = main
-[submodule "src/model/dntm"]
-	path = src/model/dntm
-	url = git@github.com:flavio2018/dntm.git
 	branch = main
