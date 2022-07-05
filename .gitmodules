@@ -2,3 +2,7 @@
 	path = src/utils
 	url = git@github.com:flavio2018/utils.git
 	branch = main
+[submodule "src/model/dntm"]
+	path = src/model/dntm
+	url = git@github.com:flavio2018/dntm.git
+	branch = mnist
