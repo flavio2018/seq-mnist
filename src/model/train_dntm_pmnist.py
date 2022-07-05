@@ -26,7 +26,8 @@ def click_wrapper(cfg):
 def train_and_test_dntm_smnist(cfg):
     device = torch.device(cfg.run.device, 0)
     rng = configure_reproducibility(cfg.run.seed)
-
+    
+    logging.info(omegaconf.OmegaConf.to_yaml(cfg))
     cfg_dict = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
     wandb.init(project="dntm_mnist", entity="flapetr", mode=cfg.run.wandb_mode)
     wandb.run.name = cfg.run.codename
