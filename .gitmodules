@@ -6,3 +6,7 @@
 	path = src/model/dntm
 	url = git@github.com:flavio2018/dntm.git
 	branch = mnist
+[submodule "src/model/dntm_var"]
+	path = src/model/dntm_var
+	url = git@github.com:flavio2018/dntm.git
+	branch = memout
