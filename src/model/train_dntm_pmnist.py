@@ -40,7 +40,6 @@ def train_and_test_dntm_smnist(cfg):
     train_dataloader, valid_dataloader = get_dataloaders(cfg, rng)
     model = build_model(cfg, device)
     memory_reading_stats = MemoryReadingsStats(path=os.getcwd())
-    memory_reading_stats.init_random_matrix(model.memory.overall_memory_size)
 
     loss_fn = torch.nn.NLLLoss()
     opt = get_optimizer(model, cfg)
@@ -57,22 +56,13 @@ def train_and_test_dntm_smnist(cfg):
 
         train_loss, train_accuracy = training_step(device, model, loss_fn, opt, train_dataloader, epoch, cfg)
         valid_loss, valid_accuracy = valid_step(device, model, loss_fn, valid_dataloader, epoch, memory_reading_stats)
-        memory_reading_stats.load_memory_readings(epoch)
-        memory_reading_stats.compute_stats()
-
+        
         wandb.log({'loss_training_set': train_loss,
                    'loss_validation_set': valid_loss})
         print(f"Epoch {epoch} --- train loss: {train_loss} - valid loss: {valid_loss} - train acc: {train_accuracy} - valid acc: {valid_accuracy}")
         wandb.log({'acc_training_set': train_accuracy,
                    'acc_validation_set': valid_accuracy})
         log_weights_gradient(model)
-
-        wandb.log({'memory_reading_variance': memory_reading_stats.readings_variance,
-                   'memory_reading_kl_div': memory_reading_stats.kl_divergence})
-        memory_reading_stats.plot_random_projections()
-        wandb.log({f"memory_readings_random_projections": wandb.Image(
-            memory_reading_stats.path+"memory_readings_projections_epoch{0:03}.png".format(epoch))})
-        memory_reading_stats.reset()
 
         early_stopping(valid_loss, model)
         if early_stopping.early_stop:
