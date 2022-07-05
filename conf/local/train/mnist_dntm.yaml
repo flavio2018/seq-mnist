@@ -4,3 +4,4 @@ epochs: 200
 patience: 10
 max_grad_norm: 0.1
 optimizer: adam
+perc_valid: 0.1

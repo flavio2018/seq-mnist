@@ -4,3 +4,4 @@ epochs: 500
 patience: 10
 max_grad_norm: 0.1
 optimizer: rmsprop
+perc_valid: 0.1
