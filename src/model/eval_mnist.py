@@ -29,16 +29,9 @@ def test_mnist(cfg):
 
     logging.info("Starting testing phase")
     valid_accuracy = test_step(device, model, valid_dataloader, memory_reading_stats)
-    memory_reading_stats.load_memory_readings(epoch=0)
-    memory_reading_stats.init_random_matrix(model.memory.overall_memory_size)
-    memory_reading_stats.compute_stats()
     print(f"Accuracy on validation set: {valid_accuracy}")
-    print(memory_reading_stats)
     logging.info(f"Accuracy on validation set: {valid_accuracy}")
-    logging.info(memory_reading_stats.get_stats())
-    memory_reading_stats.plot_random_projections()
-    wandb.log({f"memory_readings_random_projections": wandb.Image(memory_reading_stats.path+'memory_readings_projections_epoch000.png')})
-
+    
 
 def test_step(device, model, test_data_loader, memory_reading_stats):
     test_accuracy = Accuracy().to(device)
@@ -52,7 +45,7 @@ def test_step(device, model, test_data_loader, memory_reading_stats):
         mnist_images, targets = mnist_images.to(device), targets.to(device)
 
         _, output = model(mnist_images)
-        print(output.T.argmax(dim=1))
+        # print(output.T.argmax(dim=1))
         memory_reading_stats.update_memory_readings(model.memory_reading)
 
         batch_accuracy = test_accuracy(output.T, targets)
