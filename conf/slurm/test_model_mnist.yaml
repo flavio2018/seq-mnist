@@ -6,7 +6,7 @@ defaults:
         - _self_
 
 train:
-        batch_size: 4
+        batch_size: 32
         perc_valid: 0.1
 
 model:
