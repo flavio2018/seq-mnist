@@ -11,7 +11,7 @@ import os
 from utils.run_utils import seed_worker, configure_reproducibility
 
 
-def get_dataset(permute, seed):
+def get_dataset(cfg):
     def _convert_to_float32(x: np.array):
         return x.astype(np.float32)
 
@@ -28,7 +28,7 @@ def get_dataset(permute, seed):
         return x / 255
     
     def _shuffle_digit_array(x):
-        rng = np.random.default_rng(seed=seed)
+        rng = np.random.default_rng(seed=cfg.run.seed)
         # ^ the permutation should be the same for all digits
         rng.shuffle(x)
         return x
@@ -47,20 +47,20 @@ def get_dataset(permute, seed):
         _convert_to_float32,
         _shuffle_digit_array,
     )
-    if permute:
+    if cfg.data.permute:
         transforms = pmnist_transforms
     else:
         transforms = smnist_transforms
 
     train = MNIST(
-        root=os.path.join(hydra.utils.get_original_cwd(), "../data/external"),
+        root=os.path.join(cfg.run.project_path, "data/external"),
         train=True,
         download=True,
         transform=Lambda(lambda x: transforms(x)),
     )
 
     test = MNIST(
-        root=os.path.join(hydra.utils.get_original_cwd(), "../data/external"),
+        root=os.path.join(cfg.run.project_path, "data/external"),
         train=False,
         download=True,
         transform=Lambda(lambda x: transforms(x)),
@@ -69,7 +69,7 @@ def get_dataset(permute, seed):
 
 
 def get_dataloaders(cfg, rng):
-    train, _ = get_dataset(cfg.data.permute, cfg.run.seed)
+    train, _ = get_dataset(cfg)
     train.data, train.targets = train.data[:cfg.data.num_train], train.targets[:cfg.data.num_train]
 
     train_idx, valid_idx = get_train_valid_indices(train, cfg)
