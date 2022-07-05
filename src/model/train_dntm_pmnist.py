@@ -88,8 +88,7 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
 
         mnist_images, targets = mnist_images.to(device), targets.to(device)
 
-        _, outputs = model(mnist_images)
-        output = outputs[-1, :, :]
+        _, output = model(mnist_images)
         memory_reading_stats.update_memory_readings(model.memory_reading, epoch=epoch)
         
         loss_value = loss_fn(output.T, targets)
@@ -120,8 +119,7 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg):
 
         mnist_images, targets = mnist_images.to(device), targets.to(device)
 
-        _, outputs = model(mnist_images)
-        output = outputs[-1, :, :]
+        _, output = model(mnist_images)
         log_preds_and_targets(batch_i, output, targets)
 
         loss_value = loss_fn(output.T, targets)
