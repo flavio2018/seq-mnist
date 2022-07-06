@@ -78,8 +78,8 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
     model.eval()
     for batch_i, (mnist_images, targets) in enumerate(valid_data_loader):
         logging.info(f"Batch {batch_i}")
-        logging.debug(torch.cuda.memory_allocated(device))
-        logging.debug(torch.cuda.memory_reserved(device))
+        logging.debug("Memory allocated: ", torch.cuda.memory_allocated(controller_hidden_state.device), "B")
+        logging.debug("Memory reserved: ", torch.cuda.memory_reserved(controller_hidden_state.device), "B")
         model.prepare_for_batch(mnist_images, device)
 
         mnist_images, targets = mnist_images.to(device), targets.to(device)
