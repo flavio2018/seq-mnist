@@ -33,6 +33,7 @@ def test_mnist(cfg):
     logging.info(f"Accuracy on validation set: {valid_accuracy}")
     
 
+@torch.no_grad()
 def test_step(device, model, test_data_loader, memory_reading_stats):
     test_accuracy = Accuracy().to(device)
 

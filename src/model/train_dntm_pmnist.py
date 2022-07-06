@@ -70,7 +70,7 @@ def train_and_test_dntm_smnist(cfg):
             logging.info("Early stopping")
             break
 
-
+@torch.no_grad()
 def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_stats):
     logging.info("Starting validation step")
     valid_accuracy = Accuracy().to(device)
