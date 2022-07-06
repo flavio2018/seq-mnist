@@ -71,10 +71,12 @@ def train_and_test_dntm_smnist(cfg):
 
 
 def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_stats):
+    logging.info("Starting validation step")
     valid_accuracy = Accuracy().to(device)
     valid_epoch_loss = 0
     model.eval()
     for batch_i, (mnist_images, targets) in enumerate(valid_data_loader):
+        logging.info(f"Batch {batch_i}")
         model.prepare_for_batch(mnist_images, device)
 
         mnist_images, targets = mnist_images.to(device), targets.to(device)
@@ -93,13 +95,14 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
 
 
 def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg):
+    logging.info("Starting training step")
     train_accuracy = Accuracy().to(device)
 
     epoch_loss = 0
     model.train()
     for batch_i, (mnist_images, targets) in enumerate(train_data_loader):
         batch_size = len(mnist_images)   # mnist_images.shape is (BS, 784)
-        logging.info(f"MNIST batch {batch_i}")
+        logging.info(f"Batch {batch_i}")
         model.zero_grad()
 
         if (epoch == 0) and (batch_i == 0):
