@@ -45,7 +45,7 @@ def test_step(device, model, test_data_loader, memory_reading_stats):
         mnist_images, targets = mnist_images.to(device), targets.to(device)
 
         _, output = model(mnist_images)
-        # print(output.T.argmax(dim=1))
+        logging.debug(output.T.argmax(dim=1))
         memory_reading_stats.update_memory_readings(model.memory_reading)
 
         batch_accuracy = test_accuracy(output.T, targets)
