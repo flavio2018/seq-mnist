@@ -78,12 +78,18 @@ def get_dataloaders(cfg, rng):
     train_sampler = SubsetRandomSampler(train_idx)
     valid_sampler = SubsetRandomSampler(valid_idx)
 
+    if cfg.run.device == 'cuda':
+        pin_memory = True
+    else:
+        pin_memory = False
+
     train_data_loader = DataLoader(train,
                                    batch_size=cfg.train.batch_size,
                                    shuffle=False,
                                    worker_init_fn=seed_worker,
                                    sampler=train_sampler,
-                                   num_workers=0,
+                                   num_workers=1,
+                                   pin_memory=pin_memory,
                                    generator=rng)  # reproducibility
 
     valid_data_loader = DataLoader(train,
@@ -91,7 +97,8 @@ def get_dataloaders(cfg, rng):
                                    shuffle=False,
                                    worker_init_fn=seed_worker,
                                    sampler=valid_sampler,
-                                   num_workers=0,
+                                   num_workers=1,
+                                   pin_memory=pin_memory,
                                    generator=rng)  # reproducibility
 
     return train_data_loader, valid_data_loader
