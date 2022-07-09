@@ -11,7 +11,7 @@ from model.builders import build_model
 from model.dntm.MemoryReadingsStats import MemoryReadingsStats
 from utils.run_utils import configure_reproducibility
 from utils.train_utils import get_optimizer
-from utils.wandb_utils import log_weights_gradient, log_preds_and_targets
+from utils.wandb_utils import log_weights_gradient, log_preds_and_targets, log_config
 from utils.pytorchtools import EarlyStopping
 
 from torchmetrics.classification import Accuracy
@@ -31,12 +31,7 @@ def train_and_test_dntm_smnist(cfg):
     cfg_dict = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
     wandb.init(project="dntm_mnist", entity="flapetr", mode=cfg.run.wandb_mode)
     wandb.run.name = cfg.run.codename
-    for subconfig_name, subconfig_values in cfg_dict.items():
-        if isinstance(subconfig_values, dict):
-            wandb.config.update(subconfig_values)
-        else:
-            logging.warning(f"{subconfig_name} is not being logged.")
-
+    log_config(cfg_dict)
     train_dataloader, valid_dataloader = get_dataloaders(cfg, rng)
     model = build_model(cfg, device)
     memory_reading_stats = MemoryReadingsStats(path=os.getcwd())
