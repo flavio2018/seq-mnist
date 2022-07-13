@@ -26,9 +26,11 @@ def click_wrapper(cfg):
 def train_and_test_dntm_smnist(cfg):
     device = torch.device(cfg.run.device, 0)
     rng = configure_reproducibility(cfg.run.seed)
-    
+
     logging.info(omegaconf.OmegaConf.to_yaml(cfg))
-    cfg_dict = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
+    cfg_dict = omegaconf.OmegaConf.to_container(
+        cfg, resolve=True, throw_on_missing=True
+    )
     wandb.init(project="dntm_mnist", entity="flapetr", mode=cfg.run.wandb_mode)
     wandb.run.name = cfg.run.codename
     log_config(cfg_dict)
@@ -38,26 +40,33 @@ def train_and_test_dntm_smnist(cfg):
 
     loss_fn = torch.nn.NLLLoss()
     opt = get_optimizer(model, cfg)
-    early_stopping = EarlyStopping(verbose=True,
-                                   path=os.path.join(os.getcwd(),
-                                                     f"{cfg.run.codename}.pth"),
-                                   trace_func=logging.info,
-                                   patience=cfg.train.patience)
+    early_stopping = EarlyStopping(
+        verbose=True,
+        path=os.path.join(os.getcwd(), f"{cfg.run.codename}.pth"),
+        trace_func=logging.info,
+        patience=cfg.train.patience,
+    )
 
     # training
     # torch.autograd.set_detect_anomaly(True)
     for epoch in range(cfg.train.epochs):
         logging.info(f"Epoch {epoch}")
 
-        train_loss, train_accuracy = training_step(device, model, loss_fn, opt, train_dataloader, epoch, cfg)
+        train_loss, train_accuracy = training_step(
+            device, model, loss_fn, opt, train_dataloader, epoch, cfg
+        )
         torch.cuda.empty_cache()
-        valid_loss, valid_accuracy = valid_step(device, model, loss_fn, valid_dataloader, epoch, memory_reading_stats)
-        
-        wandb.log({'loss_training_set': train_loss,
-                   'loss_validation_set': valid_loss})
-        print(f"Epoch {epoch} --- train loss: {train_loss} - valid loss: {valid_loss} - train acc: {train_accuracy} - valid acc: {valid_accuracy}")
-        wandb.log({'acc_training_set': train_accuracy,
-                   'acc_validation_set': valid_accuracy})
+        valid_loss, valid_accuracy = valid_step(
+            device, model, loss_fn, valid_dataloader, epoch, memory_reading_stats
+        )
+
+        wandb.log({"loss_training_set": train_loss, "loss_validation_set": valid_loss})
+        print(
+            f"Epoch {epoch} --- train loss: {train_loss} - valid loss: {valid_loss} - train acc: {train_accuracy} - valid acc: {valid_accuracy}"
+        )
+        wandb.log(
+            {"acc_training_set": train_accuracy, "acc_validation_set": valid_accuracy}
+        )
         log_weights_gradient(model)
 
         early_stopping(valid_loss, model)
@@ -65,12 +74,13 @@ def train_and_test_dntm_smnist(cfg):
             logging.info("Early stopping")
             break
 
+
 @torch.no_grad()
 def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_stats):
     logging.info("Starting validation step")
     valid_accuracy = Accuracy().to(device)
     valid_epoch_loss = 0
-    all_labels=torch.tensor([])
+    all_labels = torch.tensor([])
     model.eval()
     for batch_i, (mnist_images, targets) in enumerate(valid_data_loader):
         logging.info(f"Batch {batch_i}")
@@ -83,7 +93,7 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
 
         _, output = model(mnist_images)
         memory_reading_stats.update_memory_readings(model.memory_reading, epoch=epoch)
-        
+
         loss_value = loss_fn(output.T, targets)
         valid_epoch_loss += loss_value.item() * mnist_images.size(0)
 
@@ -102,13 +112,17 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg):
     epoch_loss = 0
     model.train()
     for batch_i, (mnist_images, targets) in enumerate(train_data_loader):
-        batch_size = len(mnist_images)   # mnist_images.shape is (BS, 784)
+        batch_size = len(mnist_images)  # mnist_images.shape is (BS, 784)
         logging.info(f"Batch {batch_i}")
         model.zero_grad()
 
         if (epoch == 0) and (batch_i == 0):
-            mnist_batch_img = wandb.Image(make_grid(mnist_images.reshape(batch_size, 1, 28, -1)))
-            wandb.log({f"Training data batch {batch_i}, epoch {epoch}": mnist_batch_img})
+            mnist_batch_img = wandb.Image(
+                make_grid(mnist_images.reshape(batch_size, 1, 28, -1))
+            )
+            wandb.log(
+                {f"Training data batch {batch_i}, epoch {epoch}": mnist_batch_img}
+            )
 
         model.prepare_for_batch(mnist_images, device)
 
@@ -121,7 +135,12 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg):
         epoch_loss += loss_value.item() * mnist_images.size(0)
 
         loss_value.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.train.max_grad_norm, norm_type=2.0, error_if_nonfinite=True)
+        torch.nn.utils.clip_grad_norm_(
+            model.parameters(),
+            cfg.train.max_grad_norm,
+            norm_type=2.0,
+            error_if_nonfinite=True,
+        )
         opt.step()
 
         batch_accuracy = train_accuracy(output.T, targets)

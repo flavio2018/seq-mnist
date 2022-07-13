@@ -19,10 +19,12 @@ def test_mnist(cfg):
     device = torch.device(cfg.run.device, 0)
     rng = configure_reproducibility(cfg.run.seed)
     logging.info(omegaconf.OmegaConf.to_yaml(cfg))
-    cfg_dict = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
+    cfg_dict = omegaconf.OmegaConf.to_container(
+        cfg, resolve=True, throw_on_missing=True
+    )
     wandb.init(project="dntm_mnist", entity="flapetr", mode=cfg.run.wandb_mode)
     wandb.run.name = cfg.run.codename
-    
+
     _, valid_dataloader = get_dataloaders(cfg, rng)
     model = build_model(cfg, device)
     memory_reading_stats = MemoryReadingsStats(path=os.getcwd())
@@ -31,7 +33,7 @@ def test_mnist(cfg):
     valid_accuracy = test_step(device, model, valid_dataloader, memory_reading_stats)
     print(f"Accuracy on validation set: {valid_accuracy}")
     logging.info(f"Accuracy on validation set: {valid_accuracy}")
-    
+
 
 @torch.no_grad()
 def test_step(device, model, test_data_loader, memory_reading_stats):
@@ -53,5 +55,5 @@ def test_step(device, model, test_data_loader, memory_reading_stats):
     return test_accuracy.compute()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test_mnist()

@@ -12,7 +12,7 @@ from src.data.perm_seq_mnist import get_dataset
 def main(cfg):
     device = torch.device("cuda", 0)
     dntm = build_dntm(cfg.model, device)
-    
+
     _, test = get_dataset(permute=False, seed=0)
     test.data, test.targets = test.data[:10], test.targets[:10]
     test_data_loader = DataLoader(test, batch_size=1)
@@ -22,7 +22,7 @@ def main(cfg):
     num_batch = 0
     for batch, targets in test_data_loader:
         print("Batch", num_batch, "Target", targets)
-        print(get_digit_string_repr(batch[0, :, :])) 
+        print(get_digit_string_repr(batch[0, :, :]))
         batch_size, sequence_len, feature_size = batch.shape
         dntm.prepare_for_batch(batch, device)
         batch, targets = batch.to(device), targets.to(device)
@@ -33,5 +33,5 @@ def main(cfg):
     print("Test accuracy:", accuracy.compute())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
