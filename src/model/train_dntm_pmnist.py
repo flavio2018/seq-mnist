@@ -70,11 +70,13 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
     logging.info("Starting validation step")
     valid_accuracy = Accuracy().to(device)
     valid_epoch_loss = 0
+    all_labels=torch.tensor([])
     model.eval()
     for batch_i, (mnist_images, targets) in enumerate(valid_data_loader):
         logging.info(f"Batch {batch_i}")
         logging.debug(f"Memory allocated: {str(torch.cuda.memory_allocated(device))} B")
         logging.debug(f"Memory reserved: {str(torch.cuda.memory_allocated(device))} B")
+        all_labels = torch.cat([all_labels, labels])
         model.prepare_for_batch(mnist_images, device)
 
         mnist_images, targets = mnist_images.to(device), targets.to(device)
@@ -86,6 +88,7 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
         valid_epoch_loss += loss_value.item() * mnist_images.size(0)
 
         batch_accuracy = valid_accuracy(output.T, targets)
+    torch.save(all_labels, memory_reading_stats.path + "labels" + f"_epoch{epoch}.pt")
     valid_accuracy_at_epoch = valid_accuracy.compute()
     valid_epoch_loss /= len(valid_data_loader.sampler)
     valid_accuracy.reset()
