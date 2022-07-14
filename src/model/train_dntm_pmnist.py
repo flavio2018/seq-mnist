@@ -1,21 +1,21 @@
 """This script trains a DNTM on the PMNIST task."""
-import torch.nn
 import logging
 import os
-import hydra
-import omegaconf
-import wandb
 
+import omegaconf
+import torch
+import wandb
+from torchmetrics.classification import Accuracy
+from torchvision.utils import make_grid
+
+import hydra
 from data.perm_seq_mnist import get_dataloaders
 from model.builders import build_model
 from model.dntm.MemoryReadingsStats import MemoryReadingsStats
+from utils.pytorchtools import EarlyStopping
 from utils.run_utils import configure_reproducibility
 from utils.train_utils import get_optimizer
-from utils.wandb_utils import log_weights_gradient, log_preds_and_targets, log_config
-from utils.pytorchtools import EarlyStopping
-
-from torchmetrics.classification import Accuracy
-from torchvision.utils import make_grid
+from utils.wandb_utils import log_config, log_preds_and_targets, log_weights_gradient
 
 
 @hydra.main(config_path="../../conf/local", config_name="train_smnist")
@@ -62,7 +62,8 @@ def train_and_test_dntm_smnist(cfg):
 
         wandb.log({"loss_training_set": train_loss, "loss_validation_set": valid_loss})
         print(
-            f"Epoch {epoch} --- train loss: {train_loss} - valid loss: {valid_loss} - train acc: {train_accuracy} - valid acc: {valid_accuracy}"
+            f"Epoch {epoch} --- train loss: {train_loss} - valid loss: {valid_loss} -",
+            f"train acc: {train_accuracy} - valid acc: {valid_accuracy}"
         )
         wandb.log(
             {"acc_training_set": train_accuracy, "acc_validation_set": valid_accuracy}
@@ -86,7 +87,7 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
         logging.info(f"Batch {batch_i}")
         logging.debug(f"Memory allocated: {str(torch.cuda.memory_allocated(device))} B")
         logging.debug(f"Memory reserved: {str(torch.cuda.memory_allocated(device))} B")
-        all_labels = torch.cat([all_labels, labels])
+        all_labels = torch.cat([all_labels, targets])
         model.prepare_for_batch(mnist_images, device)
 
         mnist_images, targets = mnist_images.to(device), targets.to(device)
@@ -97,7 +98,7 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
         loss_value = loss_fn(output.T, targets)
         valid_epoch_loss += loss_value.item() * mnist_images.size(0)
 
-        batch_accuracy = valid_accuracy(output.T, targets)
+        valid_accuracy(output.T, targets)
     torch.save(all_labels, memory_reading_stats.path + "labels" + f"_epoch{epoch}.pt")
     valid_accuracy_at_epoch = valid_accuracy.compute()
     valid_epoch_loss /= len(valid_data_loader.sampler)
@@ -143,7 +144,7 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg):
         )
         opt.step()
 
-        batch_accuracy = train_accuracy(output.T, targets)
+        train_accuracy(output.T, targets)
 
     accuracy_over_batches = train_accuracy.compute()
     epoch_loss /= len(train_data_loader.sampler)
