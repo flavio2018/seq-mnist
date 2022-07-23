@@ -31,7 +31,12 @@ def train_and_test_dntm_smnist(cfg):
     cfg_dict = omegaconf.OmegaConf.to_container(
         cfg, resolve=True, throw_on_missing=True
     )
-    wandb.init(project="dntm_mnist", entity="flapetr", mode=cfg.run.wandb_mode)
+    wandb.init(
+        project="dntm_mnist",
+        entity="flapetr",
+        mode=cfg.run.wandb_mode,
+        settings=wandb.Settings(start_method="fork"),
+    )
     wandb.run.name = cfg.run.codename
     log_config(cfg_dict)
     train_dataloader, valid_dataloader = get_dataloaders(cfg, rng)
