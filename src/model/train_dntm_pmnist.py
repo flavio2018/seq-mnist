@@ -15,8 +15,7 @@ from model.dntm.MemoryReadingsStats import MemoryReadingsStats
 from utils.pytorchtools import EarlyStopping
 from utils.run_utils import configure_reproducibility
 from utils.train_utils import get_optimizer
-from utils.wandb_utils import (log_config, log_preds_and_targets,
-                               log_weights_gradient)
+from utils.wandb_utils import log_config, log_preds_and_targets, log_weights_gradient
 
 
 @hydra.main(config_path="../../conf/local", config_name="train_smnist")
