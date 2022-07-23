@@ -15,7 +15,8 @@ from model.dntm.MemoryReadingsStats import MemoryReadingsStats
 from utils.pytorchtools import EarlyStopping
 from utils.run_utils import configure_reproducibility
 from utils.train_utils import get_optimizer
-from utils.wandb_utils import log_config, log_preds_and_targets, log_weights_gradient
+from utils.wandb_utils import (log_config, log_preds_and_targets,
+                               log_weights_gradient)
 
 
 @hydra.main(config_path="../../conf/local", config_name="train_smnist")
@@ -46,14 +47,15 @@ def train_and_test_dntm_smnist(cfg):
         trace_func=logging.info,
         patience=cfg.train.patience,
     )
+    scaler = torch.cuda.amp.GradScaler(enabled=cfg.run.use_amp)
 
     # training
-    # torch.autograd.set_detect_anomaly(True)
+    torch.autograd.set_detect_anomaly(cfg.run.detect_anomaly)
     for epoch in range(cfg.train.epochs):
         logging.info(f"Epoch {epoch}")
 
         train_loss, train_accuracy = training_step(
-            device, model, loss_fn, opt, train_dataloader, epoch, cfg
+            device, model, loss_fn, opt, train_dataloader, epoch, cfg, scaler
         )
         torch.cuda.empty_cache()
         valid_loss, valid_accuracy = valid_step(
@@ -63,7 +65,7 @@ def train_and_test_dntm_smnist(cfg):
         wandb.log({"loss_training_set": train_loss, "loss_validation_set": valid_loss})
         print(
             f"Epoch {epoch} --- train loss: {train_loss} - valid loss: {valid_loss} -",
-            f"train acc: {train_accuracy} - valid acc: {valid_accuracy}"
+            f"train acc: {train_accuracy} - valid acc: {valid_accuracy}",
         )
         wandb.log(
             {"acc_training_set": train_accuracy, "acc_validation_set": valid_accuracy}
@@ -106,7 +108,7 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
     return valid_epoch_loss, valid_accuracy_at_epoch
 
 
-def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg):
+def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, scaler):
     logging.info("Starting training step")
     train_accuracy = Accuracy().to(device)
 
@@ -129,20 +131,24 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg):
 
         mnist_images, targets = mnist_images.to(device), targets.to(device)
 
-        _, output = model(mnist_images)
+        with torch.cuda.amp.autocast(enabled=cfg.run.use_amp):
+            _, output = model(mnist_images)
+            loss_value = loss_fn(output.T, targets)
+
         log_preds_and_targets(batch_i, output, targets)
 
-        loss_value = loss_fn(output.T, targets)
         epoch_loss += loss_value.item() * mnist_images.size(0)
 
-        loss_value.backward()
+        scaler.scale(loss_value).backward()
+        scaler.unscale_(opt)
         torch.nn.utils.clip_grad_norm_(
             model.parameters(),
             cfg.train.max_grad_norm,
             norm_type=2.0,
             error_if_nonfinite=True,
         )
-        opt.step()
+        scaler.step(opt)
+        scaler.update()
 
         train_accuracy(output.T, targets)
 

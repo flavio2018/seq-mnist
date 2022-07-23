@@ -1,4 +1,6 @@
+use_amp: true
 device: cuda
+detect_anomaly: false
 loglevel: INFO
 project_path: "/home/petruzze/seq-mnist"
 codename: default_slurm
