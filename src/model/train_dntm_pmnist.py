@@ -149,7 +149,7 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
             model.parameters(),
             cfg.train.max_grad_norm,
             norm_type=2.0,
-            error_if_nonfinite=True,
+            error_if_nonfinite=cfg.train.error_clip_grad_if_nonfinite,
         )
         scaler.step(opt)
         scaler.update()

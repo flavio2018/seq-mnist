@@ -1,5 +1,6 @@
 lr: 0.001
 batch_size: 64
+error_clip_grad_if_nonfinite: false
 epochs: 200
 patience: 10
 perc_valid: 0.1
