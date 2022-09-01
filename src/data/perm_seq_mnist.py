@@ -1,14 +1,15 @@
-"""This file contains utility functions to create the Sequential or Permutated MNIST problem."""
-from toolz.functoolz import compose_left
+"""This file contains utility functions to create the
+Sequential or Permutated MNIST problem."""
+import os
 
 import numpy as np
+from toolz.functoolz import compose_left
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision.datasets import MNIST
 from torchvision.transforms import Lambda
-import hydra
-import os
-from utils.run_utils import seed_worker, configure_reproducibility
+
+from utils.run_utils import seed_worker
 
 
 def get_dataset(cfg):
@@ -92,7 +93,7 @@ def get_dataloaders(cfg, rng):
         shuffle=False,
         worker_init_fn=seed_worker,
         sampler=train_sampler,
-        num_workers=1,
+        num_workers=cfg.train.num_workers,
         pin_memory=pin_memory,
         generator=rng,
     )  # reproducibility
@@ -103,7 +104,7 @@ def get_dataloaders(cfg, rng):
         shuffle=False,
         worker_init_fn=seed_worker,
         sampler=valid_sampler,
-        num_workers=1,
+        num_workers=cfg.train.num_workers,
         pin_memory=pin_memory,
         generator=rng,
     )  # reproducibility
