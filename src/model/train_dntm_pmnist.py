@@ -137,7 +137,9 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
         mnist_images, targets = mnist_images.to(device), targets.to(device)
 
         with torch.cuda.amp.autocast(enabled=cfg.run.use_amp):
+            logging.info("Start processing batch")
             _, output = model(mnist_images)
+            logging.info("End processing batch")
             loss_value = loss_fn(output.T, targets)
 
         log_preds_and_targets(batch_i, output, targets)
