@@ -62,7 +62,6 @@ def train_and_test_dntm_smnist(cfg):
         train_loss, train_accuracy = training_step(
             device, model, loss_fn, opt, train_dataloader, epoch, cfg, scaler
         )
-        torch.cuda.empty_cache()
         valid_loss, valid_accuracy = valid_step(
             device, model, loss_fn, valid_dataloader, epoch, memory_reading_stats
         )
