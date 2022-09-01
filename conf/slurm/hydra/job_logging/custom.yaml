@@ -1,7 +1,7 @@
 version: 1
 formatters:
   simple:
-    format: "%(levelname)s:%(filename)s:%(message)s"
+    format: "%(asctime)s - %(levelname)s:%(filename)s:%(message)s"
 handlers:
   file:
     class: logging.FileHandler
