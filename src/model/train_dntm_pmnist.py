@@ -96,7 +96,9 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
         all_labels = torch.cat([all_labels, targets])
         model.prepare_for_batch(mnist_images, device)
 
-        mnist_images, targets = mnist_images.to(device), targets.to(device)
+        mnist_images, targets = mnist_images.to(device, non_blocking=True), targets.to(
+            device, non_blocking=True
+        )
 
         _, output = model(mnist_images)
         memory_reading_stats.update_memory_readings(model.memory_reading, epoch=epoch)
@@ -133,7 +135,9 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
 
         model.prepare_for_batch(mnist_images, device)
 
-        mnist_images, targets = mnist_images.to(device), targets.to(device)
+        mnist_images, targets = mnist_images.to(device, non_blocking=True), targets.to(
+            device, non_blocking=True
+        )
 
         with torch.cuda.amp.autocast(enabled=cfg.run.use_amp):
             logging.info("Start processing batch")
