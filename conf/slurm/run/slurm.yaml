@@ -2,6 +2,7 @@ use_amp: true
 device: cuda
 detect_anomaly: false
 loglevel: INFO
+pin_memory: true
 project_path: "/home/petruzze/seq-mnist"
 codename: default_slurm
 seed: 2147483647

@@ -83,7 +83,7 @@ def get_dataloaders(cfg, rng):
     valid_sampler = SubsetRandomSampler(valid_idx)
 
     if cfg.run.device == "cuda":
-        pin_memory = True
+        pin_memory = cfg.run.pin_memory
     else:
         pin_memory = False
 
