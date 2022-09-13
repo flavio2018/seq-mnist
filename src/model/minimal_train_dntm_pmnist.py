@@ -1,6 +1,7 @@
 """This script trains a DNTM on the PMNIST task."""
 import logging
 import os
+import time
 
 import omegaconf
 import torch
@@ -10,7 +11,6 @@ from torchmetrics.classification import Accuracy
 import hydra
 from data.perm_seq_mnist import get_dataloaders
 from model.builders import build_model
-from model.dntm.MemoryReadingsStats import MemoryReadingsStats
 from utils.pytorchtools import EarlyStopping
 from utils.run_utils import configure_reproducibility
 from utils.train_utils import get_optimizer
@@ -41,7 +41,6 @@ def train_and_test_dntm_smnist(cfg):
     log_config(cfg_dict)
     train_dataloader, valid_dataloader = get_dataloaders(cfg, rng)
     model = build_model(cfg, device)
-    memory_reading_stats = MemoryReadingsStats(path=os.getcwd())
 
     loss_fn = torch.nn.NLLLoss()
     opt = get_optimizer(model, cfg)
@@ -55,11 +54,15 @@ def train_and_test_dntm_smnist(cfg):
     for epoch in range(cfg.train.epochs):
         logging.info(f"Epoch {epoch}")
 
+        start_time = time.time()
         train_loss, train_accuracy = training_step(
             device, model, loss_fn, opt, train_dataloader, epoch, cfg
         )
+        epoch_duration = time.time() - start_time
+        training_throughput = 784 * len(train_dataloader) / epoch_duration
+        wandb.log({"TT": training_throughput})
         valid_loss, valid_accuracy = valid_step(
-            device, model, loss_fn, valid_dataloader, epoch, memory_reading_stats
+            device, model, loss_fn, valid_dataloader, epoch
         )
 
         wandb.log({"loss_training_set": train_loss, "loss_validation_set": valid_loss})
@@ -79,7 +82,7 @@ def train_and_test_dntm_smnist(cfg):
 
 
 @torch.no_grad()
-def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_stats):
+def valid_step(device, model, loss_fn, valid_data_loader, epoch):
     logging.info("Starting validation step")
     valid_accuracy = Accuracy().to(device)
     valid_epoch_loss = 0
@@ -97,13 +100,11 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
         model.prepare_for_batch(mnist_images, device)
 
         _, output = model(mnist_images)
-        memory_reading_stats.update_memory_readings(model.memory_reading, epoch=epoch)
 
         loss_value = loss_fn(output.T, targets)
         valid_epoch_loss += loss_value.item() * mnist_images.size(0)
 
         valid_accuracy(output.T, targets)
-    torch.save(all_labels, memory_reading_stats.path + "labels" + f"_epoch{epoch}.pt")
     valid_accuracy_at_epoch = valid_accuracy.compute()
     valid_epoch_loss /= len(valid_data_loader.sampler)
     valid_accuracy.reset()
