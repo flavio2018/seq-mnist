@@ -14,7 +14,7 @@ from model.dntm.MemoryReadingsStats import MemoryReadingsStats
 from utils.pytorchtools import EarlyStopping
 from utils.run_utils import configure_reproducibility
 from utils.train_utils import get_optimizer
-from utils.wandb_utils import log_config, log_preds_and_targets, log_weights_gradient
+from utils.wandb_utils import log_config, log_weights_gradient
 
 
 @hydra.main(config_path="../../conf/local", config_name="train_smnist")
@@ -121,16 +121,15 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg):
         logging.info(f"Batch {batch_i}")
         model.zero_grad()
 
-        mnist_images, targets = mnist_images.to(device, non_blocking=True), targets.to(
-            device, non_blocking=True
+        mnist_images, targets = (
+            mnist_images.to(device, non_blocking=True),
+            targets.to(device, non_blocking=True),
         )
 
         model.prepare_for_batch(mnist_images, device)
 
         _, output = model(mnist_images)
         loss_value = loss_fn(output.T, targets)
-
-        log_preds_and_targets(batch_i, output, targets)
 
         epoch_loss += loss_value.item() * mnist_images.size(0)
 
