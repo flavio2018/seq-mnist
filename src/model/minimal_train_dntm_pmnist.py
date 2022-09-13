@@ -53,8 +53,6 @@ def train_and_test_dntm_smnist(cfg):
         patience=cfg.train.patience,
     )
 
-    # training
-    torch.autograd.set_detect_anomaly(cfg.run.detect_anomaly)
     for epoch in range(cfg.train.epochs):
         logging.info(f"Epoch {epoch}")
 
