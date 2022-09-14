@@ -37,7 +37,6 @@ def train_and_test_dntm_smnist(cfg):
         settings=wandb.Settings(start_method="fork"),
     )
     wandb.run.name = cfg.run.codename
-    wandb.save(os.path.join(os.getcwd(), f"{cfg.run.codename}.log"))
     log_config(cfg_dict)
     train_ds, test_ds = get_dataset(cfg)
     train_tds = torch.utils.data.TensorDataset(
