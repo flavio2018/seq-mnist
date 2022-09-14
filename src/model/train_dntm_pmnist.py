@@ -39,7 +39,6 @@ def train_and_test_dntm_smnist(cfg):
         settings=wandb.Settings(start_method="fork"),
     )
     wandb.run.name = cfg.run.codename
-    wandb.save(os.path.join(os.getcwd(), f"{cfg.run.codename}.log"))
     log_config(cfg_dict)
     train_dataloader, valid_dataloader = get_dataloaders(cfg, rng)
     model = build_model(cfg, device)
