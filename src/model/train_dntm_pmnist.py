@@ -1,6 +1,7 @@
 """This script trains a DNTM on the PMNIST task."""
 import logging
 import os
+import time
 
 import omegaconf
 import torch
@@ -59,9 +60,14 @@ def train_and_test_dntm_smnist(cfg):
     for epoch in range(cfg.train.epochs):
         logging.info(f"Epoch {epoch}")
 
+        start_time = time.time()
         train_loss, train_accuracy = training_step(
             device, model, loss_fn, opt, train_dataloader, epoch, cfg, scaler
         )
+        epoch_duration = time.time() - start_time
+        training_throughput = 784 * len(train_dataloader.sampler) / epoch_duration
+        wandb.log({"TT": training_throughput})
+
         valid_loss, valid_accuracy = valid_step(
             device, model, loss_fn, valid_dataloader, epoch, memory_reading_stats
         )
