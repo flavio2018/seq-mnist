@@ -109,8 +109,9 @@ def valid_step(device, model, loss_fn, valid_ds, epoch, memory_reading_stats, cf
         logging.debug(f"Memory reserved: {str(torch.cuda.memory_allocated(device))} B")
         all_labels = torch.cat([all_labels, targets])
 
-        mnist_images, targets = mnist_images.to(device, non_blocking=True), targets.to(
-            device, non_blocking=True
+        mnist_images, targets = (
+            mnist_images.to(device, non_blocking=True),
+            targets.to(device, non_blocking=True),
         )
         model.prepare_for_batch(mnist_images, device)
 
@@ -118,12 +119,12 @@ def valid_step(device, model, loss_fn, valid_ds, epoch, memory_reading_stats, cf
         memory_reading_stats.update_memory_readings(model.memory_reading, epoch=epoch)
 
         loss_value = loss_fn(output.T, targets)
-        valid_epoch_loss += loss_value.item() * mnist_images.size(0)
+        valid_epoch_loss += loss_value.item()
 
         valid_accuracy(output.T, targets)
     torch.save(all_labels, memory_reading_stats.path + "labels" + f"_epoch{epoch}.pt")
     valid_accuracy_at_epoch = valid_accuracy.compute()
-    valid_epoch_loss /= len(valid_ds)
+    valid_epoch_loss /= batch_i + 1
     valid_accuracy.reset()
     return valid_epoch_loss, valid_accuracy_at_epoch
 
@@ -149,12 +150,10 @@ def training_step(device, model, loss_fn, opt, train_ds, epoch, cfg, scaler):
         model.prepare_for_batch(mnist_images, device)
 
         with torch.cuda.amp.autocast(enabled=cfg.run.use_amp):
-            logging.info("Start processing batch")
             _, output = model(mnist_images)
-            logging.info("End processing batch")
             loss_value = loss_fn(output.T, targets)
 
-        epoch_loss += loss_value.item() * mnist_images.size(0)
+        epoch_loss += loss_value.item()
 
         scaler.scale(loss_value).backward()
         scaler.unscale_(opt)
@@ -170,7 +169,7 @@ def training_step(device, model, loss_fn, opt, train_ds, epoch, cfg, scaler):
         train_accuracy(output.T, targets)
 
     accuracy_over_batches = train_accuracy.compute()
-    epoch_loss /= len(train_ds)
+    epoch_loss /= batch_i + 1
     train_accuracy.reset()
     return epoch_loss, accuracy_over_batches
 
