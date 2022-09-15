@@ -1,9 +1,11 @@
-use_amp: true
-device: cuda
+codename: default_slurm
+cudnn: true
 detect_anomaly: false
+determnistic: false
+device: cuda
 loglevel: INFO
 pin_memory: true
 project_path: "/home/petruzze/seq-mnist"
-codename: default_slurm
 seed: 2147483647
+use_amp: false
 wandb_mode: online
