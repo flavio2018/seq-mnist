@@ -9,7 +9,7 @@ import wandb
 from torchmetrics.classification import Accuracy
 
 import hydra
-from data.perm_seq_mnist import get_dataloaders
+from data.perm_seq_mnist import get_dataset
 from model.builders import build_model
 from model.dntm.MemoryReadingsStats import MemoryReadingsStats
 from utils.pytorchtools import EarlyStopping
@@ -25,7 +25,7 @@ def click_wrapper(cfg):
 
 def train_and_test_dntm_smnist(cfg):
     device = torch.device(cfg.run.device, 0)
-    rng = configure_reproducibility(cfg.run.seed)
+    configure_reproducibility(cfg.run.seed)
 
     logging.info(omegaconf.OmegaConf.to_yaml(cfg))
     cfg_dict = omegaconf.OmegaConf.to_container(
@@ -39,7 +39,15 @@ def train_and_test_dntm_smnist(cfg):
     )
     wandb.run.name = cfg.run.codename
     log_config(cfg_dict)
-    train_dataloader, valid_dataloader = get_dataloaders(cfg, rng)
+    train_ds, test_ds = get_dataset(cfg)
+    train_tds = torch.utils.data.TensorDataset(
+        train_ds.data[:900].view(900, -1, 1).type(torch.float32).to(cfg.run.device),
+        train_ds.targets[:900],
+    )
+    test_tds = torch.utils.data.TensorDataset(
+        test_ds.data[:100].view(100, -1, 1).type(torch.float32).to(cfg.run.device),
+        train_ds.targets[:100],
+    )
     model = build_model(cfg, device)
     memory_reading_stats = MemoryReadingsStats(path=os.getcwd())
 
@@ -60,14 +68,14 @@ def train_and_test_dntm_smnist(cfg):
 
         start_time = time.time()
         train_loss, train_accuracy = training_step(
-            device, model, loss_fn, opt, train_dataloader, epoch, cfg, scaler
+            device, model, loss_fn, opt, train_tds, epoch, cfg, scaler
         )
         epoch_duration = time.time() - start_time
-        training_throughput = 784 * len(train_dataloader.sampler) / epoch_duration
+        training_throughput = 784 * len(train_tds) / epoch_duration
         wandb.log({"TT": training_throughput})
 
         valid_loss, valid_accuracy = valid_step(
-            device, model, loss_fn, valid_dataloader, epoch, memory_reading_stats
+            device, model, loss_fn, test_tds, epoch, memory_reading_stats, cfg
         )
 
         wandb.log({"loss_training_set": train_loss, "loss_validation_set": valid_loss})
@@ -87,13 +95,16 @@ def train_and_test_dntm_smnist(cfg):
 
 
 @torch.no_grad()
-def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_stats):
+def valid_step(device, model, loss_fn, valid_ds, epoch, memory_reading_stats, cfg):
     logging.info("Starting validation step")
     valid_accuracy = Accuracy().to(device)
     valid_epoch_loss = 0
     all_labels = torch.tensor([])
     model.eval()
-    for batch_i, (mnist_images, targets) in enumerate(valid_data_loader):
+    for batch_i in range(len(valid_ds) // cfg.train.batch_size):
+        mnist_images, targets = valid_ds[
+            batch_i * cfg.train.batch_size : (batch_i + 1) * cfg.train.batch_size
+        ]
         logging.debug(f"Memory allocated: {str(torch.cuda.memory_allocated(device))} B")
         logging.debug(f"Memory reserved: {str(torch.cuda.memory_allocated(device))} B")
         all_labels = torch.cat([all_labels, targets])
@@ -112,23 +123,27 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
         valid_accuracy(output.T, targets)
     torch.save(all_labels, memory_reading_stats.path + "labels" + f"_epoch{epoch}.pt")
     valid_accuracy_at_epoch = valid_accuracy.compute()
-    valid_epoch_loss /= len(valid_data_loader.sampler)
+    valid_epoch_loss /= len(valid_ds)
     valid_accuracy.reset()
     return valid_epoch_loss, valid_accuracy_at_epoch
 
 
-def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, scaler):
+def training_step(device, model, loss_fn, opt, train_ds, epoch, cfg, scaler):
     logging.info("Starting training step")
     train_accuracy = Accuracy().to(device)
 
     epoch_loss = 0
     model.train()
-    for batch_i, (mnist_images, targets) in enumerate(train_data_loader):
+    for batch_i in range(len(train_ds) // cfg.train.batch_size):
+        mnist_images, targets = train_ds[
+            batch_i * cfg.train.batch_size : (batch_i + 1) * cfg.train.batch_size
+        ]
         # mnist_images.shape is (BS, 784)
         model.zero_grad()
 
-        mnist_images, targets = mnist_images.to(device, non_blocking=True), targets.to(
-            device, non_blocking=True
+        mnist_images, targets = (
+            mnist_images.to(device, non_blocking=True),
+            targets.to(device, non_blocking=True),
         )
 
         model.prepare_for_batch(mnist_images, device)
@@ -155,7 +170,7 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
         train_accuracy(output.T, targets)
 
     accuracy_over_batches = train_accuracy.compute()
-    epoch_loss /= len(train_data_loader.sampler)
+    epoch_loss /= len(train_ds)
     train_accuracy.reset()
     return epoch_loss, accuracy_over_batches
 
