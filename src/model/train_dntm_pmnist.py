@@ -25,9 +25,10 @@ def click_wrapper(cfg):
 
 def train_and_test_dntm_smnist(cfg):
     device = torch.device(cfg.run.device, 0)
-    rng = configure_reproducibility(cfg.run.seed)
+    rng = configure_reproducibility(cfg)
 
     logging.info(omegaconf.OmegaConf.to_yaml(cfg))
+    print(omegaconf.OmegaConf.to_yaml(cfg))
     cfg_dict = omegaconf.OmegaConf.to_container(
         cfg, resolve=True, throw_on_missing=True
     )
@@ -143,6 +144,7 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
 
         epoch_loss += loss_value.item() * mnist_images.size(0)
         wandb.log({"loss_training_set": loss_value})
+        print(loss_value)
 
         scaler.scale(loss_value).backward()
         scaler.unscale_(opt)
