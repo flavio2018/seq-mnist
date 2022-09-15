@@ -94,7 +94,6 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
     all_labels = torch.tensor([])
     model.eval()
     for batch_i, (mnist_images, targets) in enumerate(valid_data_loader):
-        logging.info(f"Batch {batch_i}")
         logging.debug(f"Memory allocated: {str(torch.cuda.memory_allocated(device))} B")
         logging.debug(f"Memory reserved: {str(torch.cuda.memory_allocated(device))} B")
         all_labels = torch.cat([all_labels, targets])
@@ -126,7 +125,6 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
     model.train()
     for batch_i, (mnist_images, targets) in enumerate(train_data_loader):
         # mnist_images.shape is (BS, 784)
-        logging.info(f"Batch {batch_i}")
         model.zero_grad()
 
         mnist_images, targets = mnist_images.to(device, non_blocking=True), targets.to(
