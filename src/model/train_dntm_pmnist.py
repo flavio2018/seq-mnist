@@ -78,7 +78,6 @@ def train_and_test_dntm_smnist(cfg):
             device, model, loss_fn, test_tds, epoch, memory_reading_stats, cfg
         )
 
-        wandb.log({"loss_training_set": train_loss, "loss_validation_set": valid_loss})
         print(
             f"Epoch {epoch} --- train loss: {train_loss} - valid loss: {valid_loss} -",
             f"train acc: {train_accuracy} - valid acc: {valid_accuracy}",
@@ -120,6 +119,7 @@ def valid_step(device, model, loss_fn, valid_ds, epoch, memory_reading_stats, cf
 
         loss_value = loss_fn(output.T, targets)
         valid_epoch_loss += loss_value.item()
+        wandb.log({"loss_validation_set": loss_value})
 
         valid_accuracy(output.T, targets)
     torch.save(all_labels, memory_reading_stats.path + "labels" + f"_epoch{epoch}.pt")
@@ -154,6 +154,7 @@ def training_step(device, model, loss_fn, opt, train_ds, epoch, cfg, scaler):
             loss_value = loss_fn(output.T, targets)
 
         epoch_loss += loss_value.item()
+        wandb.log({"loss_training_set": loss_value})
 
         scaler.scale(loss_value).backward()
         scaler.unscale_(opt)
