@@ -70,7 +70,6 @@ def train_and_test_dntm_smnist(cfg):
             device, model, loss_fn, valid_dataloader, epoch, memory_reading_stats
         )
 
-        wandb.log({"loss_training_set": train_loss, "loss_validation_set": valid_loss})
         print(
             f"Epoch {epoch} --- train loss: {train_loss} - valid loss: {valid_loss} -",
             f"train acc: {train_accuracy} - valid acc: {valid_accuracy}",
@@ -98,8 +97,9 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
         logging.debug(f"Memory reserved: {str(torch.cuda.memory_allocated(device))} B")
         all_labels = torch.cat([all_labels, targets])
 
-        mnist_images, targets = mnist_images.to(device, non_blocking=True), targets.to(
-            device, non_blocking=True
+        mnist_images, targets = (
+            mnist_images.to(device, non_blocking=True),
+            targets.to(device, non_blocking=True),
         )
         model.prepare_for_batch(mnist_images, device)
 
@@ -108,6 +108,7 @@ def valid_step(device, model, loss_fn, valid_data_loader, epoch, memory_reading_
 
         loss_value = loss_fn(output.T, targets)
         valid_epoch_loss += loss_value.item() * mnist_images.size(0)
+        wandb.log({"loss_validation_set": loss_value})
 
         valid_accuracy(output.T, targets)
     torch.save(all_labels, memory_reading_stats.path + "labels" + f"_epoch{epoch}.pt")
@@ -127,8 +128,9 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
         # mnist_images.shape is (BS, 784)
         model.zero_grad()
 
-        mnist_images, targets = mnist_images.to(device, non_blocking=True), targets.to(
-            device, non_blocking=True
+        mnist_images, targets = (
+            mnist_images.to(device, non_blocking=True),
+            targets.to(device, non_blocking=True),
         )
 
         model.prepare_for_batch(mnist_images, device)
@@ -140,6 +142,7 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
             loss_value = loss_fn(output.T, targets)
 
         epoch_loss += loss_value.item() * mnist_images.size(0)
+        wandb.log({"loss_training_set": loss_value})
 
         scaler.scale(loss_value).backward()
         scaler.unscale_(opt)
