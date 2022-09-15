@@ -1,7 +1,7 @@
 codename: default_slurm
 cudnn: true
 detect_anomaly: false
-determnistic: false
+deterministic: false
 device: cuda
 loglevel: INFO
 pin_memory: true
