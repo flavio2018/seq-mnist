@@ -3,7 +3,7 @@ batch_size: 64
 error_clip_grad_if_nonfinite: false
 epochs: 200
 max_grad_norm: 0.1
-num_workers: 2
+num_workers: 4
 optimizer: adam
 patience: 10
 perc_valid: 0.1
