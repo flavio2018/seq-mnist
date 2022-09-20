@@ -144,7 +144,6 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
 
         epoch_loss += loss_value.item() * mnist_images.size(0)
         wandb.log({"loss_training_set": loss_value})
-        print(loss_value)
 
         scaler.scale(loss_value).backward()
         scaler.unscale_(opt)
