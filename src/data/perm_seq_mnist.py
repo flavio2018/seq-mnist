@@ -100,7 +100,7 @@ def get_dataloaders(cfg, rng):
 
     valid_data_loader = DataLoader(
         train,
-        batch_size=cfg.train.batch_size,
+        batch_size=cfg.train.valid_batch_size,
         shuffle=False,
         worker_init_fn=seed_worker,
         sampler=valid_sampler,
