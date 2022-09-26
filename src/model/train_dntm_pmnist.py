@@ -78,7 +78,6 @@ def train_and_test_dntm_smnist(cfg):
         wandb.log(
             {"acc_training_set": train_accuracy, "acc_validation_set": valid_accuracy}
         )
-        log_weights_gradient(model)
 
         early_stopping(valid_loss, model)
         if early_stopping.early_stop:
@@ -155,6 +154,8 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
         scaler.update()
 
         train_accuracy(output.T, targets)
+        log_weights_gradient(model)
+
 
     accuracy_over_batches = train_accuracy.compute()
     epoch_loss /= len(train_data_loader.sampler)
