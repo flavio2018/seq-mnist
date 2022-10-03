@@ -15,7 +15,7 @@ from model.dntm.MemoryReadingsStats import MemoryReadingsStats
 from utils.pytorchtools import EarlyStopping
 from utils.run_utils import configure_reproducibility
 from utils.train_utils import get_optimizer
-from utils.wandb_utils import log_config, log_weights_gradient
+from utils.wandb_utils import log_config, log_weights_gradient, log_mem_stats, log_params_norm
 
 
 @hydra.main(config_path="../../conf/local", config_name="train_smnist")
@@ -155,6 +155,8 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
 
         train_accuracy(output.T, targets)
         log_weights_gradient(model)
+        log_mem_stats(model)
+        log_params_norm(model)
 
 
     accuracy_over_batches = train_accuracy.compute()
