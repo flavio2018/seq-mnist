@@ -42,13 +42,14 @@ def train_and_test_dntm_smnist(cfg):
     log_config(cfg_dict)
     train_dataloader, valid_dataloader = get_dataloaders(cfg, rng)
     model = build_model(cfg, device)
-    memory_reading_stats = MemoryReadingsStats(path=os.getcwd())
+    os.mkdir(path=os.getcwd() + '/output')
+    memory_reading_stats = MemoryReadingsStats(path=os.getcwd() + '/output')
 
     loss_fn = torch.nn.NLLLoss()
     opt = get_optimizer(model, cfg)
     early_stopping = EarlyStopping(
         verbose=True,
-        path=os.path.join(os.getcwd(), f"{cfg.run.codename}.pth"),
+        path=os.path.join(os.getcwd(), 'output', f"{cfg.run.codename}.pth"),
         trace_func=logging.info,
         patience=cfg.train.patience,
     )
