@@ -6,5 +6,5 @@ epochs: 200
 max_grad_norm: 0.1
 num_workers: 4
 optimizer: adam
-patience: 10
+patience: 5
 perc_valid: 0.1
