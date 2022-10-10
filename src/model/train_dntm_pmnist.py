@@ -127,6 +127,7 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
     model.train()
     for batch_i, (mnist_images, targets) in enumerate(train_data_loader):
         # mnist_images.shape is (BS, 784)
+        step = compute_step(epoch, batch_i)
         model.zero_grad()
 
         mnist_images, targets = (
@@ -141,7 +142,10 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
             loss_value = loss_fn(output.T, targets)
 
         epoch_loss += loss_value.item() * mnist_images.size(0)
-        wandb.log({"loss_training_set": loss_value})
+        wandb.log({
+            "loss_training_set": loss_value,
+            "step": step,
+            })
 
         scaler.scale(loss_value).backward()
         scaler.unscale_(opt)
@@ -155,15 +159,20 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
         scaler.update()
 
         train_accuracy(output.T, targets)
-        log_weights_gradient(model)
-        log_mem_stats(model)
-        log_params_norm(model)
+        log_weights_gradient(model, step)
+        log_mem_stats(model, step)
+        log_params_norm(model, step)
 
 
     accuracy_over_batches = train_accuracy.compute()
     epoch_loss /= len(train_data_loader.sampler)
     train_accuracy.reset()
     return epoch_loss, accuracy_over_batches
+
+
+def compute_step(epoch, batch_i):
+    num_steps_per_epoch = 1688  # (60,000 * 0.9) / 32
+    return epoch*num_steps_per_epoch + batch_i + 1
 
 
 if __name__ == "__main__":
