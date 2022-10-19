@@ -127,7 +127,7 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
     model.train()
     for batch_i, (mnist_images, targets) in enumerate(train_data_loader):
         # mnist_images.shape is (BS, 784)
-        step = compute_step(epoch, batch_i)
+        step = compute_step(epoch, batch_i, mnist_images.size(0))
         model.zero_grad()
 
         mnist_images, targets = (
@@ -171,8 +171,8 @@ def training_step(device, model, loss_fn, opt, train_data_loader, epoch, cfg, sc
     return epoch_loss, accuracy_over_batches
 
 
-def compute_step(epoch, batch_i):
-    num_steps_per_epoch = 1688  # (60,000 * 0.9) / 32
+def compute_step(epoch, batch_i, batch_size):
+    num_steps_per_epoch = 60000 * 0.9 * batch_size
     return epoch*num_steps_per_epoch + batch_i + 1
 
 
